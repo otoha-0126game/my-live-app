@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ライブ支援カメラ</title>
+    <style>
+        /* ここにデザインの指示を書きます（後で説明） */
+        body {
+            margin: 0;
+            overflow: hidden; /* 画面からはみ出る部分を隠す */
+        }
+        #cameraFeed {
+            /* 映像を画面いっぱいに表示するための設定 */
+            position: absolute; /* 位置を自由に決められるようにする */
+            top: 0; /* 画面の一番上 */
+            left: 0; /* 画面の一番左 */
+            width: 100%; /* 画面の横幅いっぱい */
+            height: 100%; /* 画面の縦幅いっぱい */
+            object-fit: cover; /* 映像が画面いっぱいに表示されるように調整 */
+            z-index: 1; /* 後で文字を重ねるために、映像が「下」になるようにする */
+        }
+    </style>
+</head>
+<body>
+    <video id="cameraFeed" autoplay playsinline></video>
+
+    <script src="script.js"></script>
+</body>
+</html>
