@@ -4,7 +4,7 @@ const videoElement = document.getElementById('cameraFeed');
 // スマホのカメラを使えるようにするプログラム
 navigator.mediaDevices.getUserMedia({
     video: {
-        facingMode: 'environment' // 外カメ（背面カメラ）を使うことを指示
+        facingMode: {exact:'environment'} // 外カメ（背面カメラ）を使うことを指示
     }
 })
 .then(stream => {
