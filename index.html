@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ライブ支援カメラ</title>
     <style>
-        body {
+         body {
             margin: 0;
             overflow: hidden; /* 画面からはみ出る部分を隠す */
         }
@@ -20,7 +20,10 @@
             z-index: 1; /* 後で文字を重ねるために、映像が「下」になるようにする */
             transform: scaleY(-1); /* 左右反転 */
 
-        #callOverlay {
+
+
+
+            #callOverlay {
         position: absolute; /* 映像の上に重ねるために位置を自由に設定 */
         top: 0;
         left: 0;
@@ -34,7 +37,7 @@
         background-color: rgba(0, 0, 0, 0.3); /* 半透明の黒い背景で、文字を見やすくする（調整可能） */
     }
 
-    　　　#callText {
+    #callText {
         color: white; /* コール文字の色を白に */
         font-size: 8vw; /* 文字の大きさを画面の幅に合わせて調整（スマホで大きく表示される） */
         font-weight: bold; /* 文字を太字に */
@@ -44,7 +47,7 @@
         display: none; /* **最初は非表示**にしておき、タイミングが来たら表示する */
     }
 
-    　　　#startButton {
+    #startButton {
         position: absolute; /* ボタンの位置を自由に設定 */
         top: 20px; /* 画面の上から20pxの位置 */
         left: 50%; /* 画面の真ん中 */
