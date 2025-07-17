@@ -14,8 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // カメラとマイクのアクセス許可を要求
-            stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { exact: "environment" } // 背面カメラを優先
+                },
+                audio: true
+            });
             cameraFeed.srcObject = stream; // 映像をvideo要素にセット
+
 
             // カメラが起動したらスタートボタンを非表示にする
             startButton.style.display = 'none';
