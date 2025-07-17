@@ -18,12 +18,12 @@
             height: 100%; /* 画面の縦幅いっぱい */
             object-fit: cover; /* 映像が画面いっぱいに表示されるように調整 */
             z-index: 1; /* 後で文字を重ねるために、映像が「下」になるようにする */
-            transform: scaleY(-1); /* 左右反転 */
+            transform: scaleX(-1); /* 左右反転 */
 
 
 
 
-            #callOverlay {
+        #callOverlay {
         position: absolute; /* 映像の上に重ねるために位置を自由に設定 */
         top: 0;
         left: 0;
@@ -35,32 +35,32 @@
         align-items: center; /* 縦方向の真ん中 */
         pointer-events: none; /* オーバーレイの下にある要素（映像など）をクリックできるようにする */
         background-color: rgba(0, 0, 0, 0.3); /* 半透明の黒い背景で、文字を見やすくする（調整可能） */
-    }
-
-    #callText {
-        color: white; /* コール文字の色を白に */
-        font-size: 8vw; /* 文字の大きさを画面の幅に合わせて調整（スマホで大きく表示される） */
-        font-weight: bold; /* 文字を太字に */
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 文字に影をつけて、背景と区別しやすくする */
-        text-align: center; /* 文字を中央揃えに */
-        padding: 10px; /* 文字の周りに少し余白を作る */
-        display: none; /* **最初は非表示**にしておき、タイミングが来たら表示する */
-    }
-
-    #startButton {
-        position: absolute; /* ボタンの位置を自由に設定 */
-        top: 20px; /* 画面の上から20pxの位置 */
-        left: 50%; /* 画面の真ん中 */
-        transform: translateX(-50%); /* ボタン自体を半分左にずらして、完全に真ん中に配置 */
-        z-index: 3; /* 一番手前に表示 */
-        padding: 15px 30px; /* ボタンの大きさを調整 */
-        font-size: 1.5em; /* ボタンの文字の大きさ */
-        background-color: #4CAF50; /* ボタンの色（緑色） */
-        color: white; /* ボタンの文字の色 */
-        border: none; /* ボタンの枠線をなくす */
-        border-radius: 8px; /* ボタンの角を丸くする */
-        cursor: pointer; /* マウスカーソルを指の形にする */
-    }
+        }
+    
+        #callText {
+            color: white; /* コール文字の色を白に */
+            font-size: 8vw; /* 文字の大きさを画面の幅に合わせて調整（スマホで大きく表示される） */
+            font-weight: bold; /* 文字を太字に */
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 文字に影をつけて、背景と区別しやすくする */
+            text-align: center; /* 文字を中央揃えに */
+            padding: 10px; /* 文字の周りに少し余白を作る */
+            display: none; /* **最初は非表示**にしておき、タイミングが来たら表示する */
+        }
+    
+        #startButton {
+            position: absolute; /* ボタンの位置を自由に設定 */
+            top: 20px; /* 画面の上から20pxの位置 */
+            left: 50%; /* 画面の真ん中 */
+            transform: translateX(-50%); /* ボタン自体を半分左にずらして、完全に真ん中に配置 */
+            z-index: 3; /* 一番手前に表示 */
+            padding: 15px 30px; /* ボタンの大きさを調整 */
+            font-size: 1.5em; /* ボタンの文字の大きさ */
+            background-color: #4CAF50; /* ボタンの色（緑色） */
+            color: white; /* ボタンの文字の色 */
+            border: none; /* ボタンの枠線をなくす */
+            border-radius: 8px; /* ボタンの角を丸くする */
+            cursor: pointer; /* マウスカーソルを指の形にする */
+        }
         }
     </style>
 </head>
