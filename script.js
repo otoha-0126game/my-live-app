@@ -17,6 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
             stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
             cameraFeed.srcObject = stream; // 映像をvideo要素にセット
 
+            // カメラが起動したらスタートボタンを非表示にする
+            startButton.style.display = 'none';
+
             // 1秒後に「コール」と表示
             setTimeout(() => {
                 callText.textContent = 'コール';
