@@ -3,70 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>カメラアプリ</title>
+    <title>アイドルライブ カメラサイト</title>
     <style>
         body {
             margin: 0;
-            overflow: hidden; /* 画面からはみ出る部分を隠す */
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #121212;
+            color: white;
+            flex-direction: column;
         }
-        #cameraFeed {
-            /* 映像を画面いっぱいに表示するための設定 */
-            position: absolute; /* 位置を自由に決められるようにする */
-            top: 0; /* 画面の一番上 */
-            left: 0; /* 画面の一番左 */
-            width: 100%; /* 画面の横幅いっぱい */
-            height: 100%; /* 画面の縦幅いっぱい */
-            object-fit: cover; /* 映像が画面いっぱいに表示されるように調整 */
-            z-index: 1; /* 後で文字を重ねるために、映像が「下」になるようにする */
-            /* transform: scaleY(-1); */ /* 上下反転（不要であれば削除または変更） */
-            transform: scaleX(-1); /* 左右反転（セルフィーカメラのようになる） */
-        }
-
-        #callOverlay {
-            position: absolute; /* 映像の上に重ねるために位置を自由に設定 */
-            top: 0;
-            left: 0;
+        video {
             width: 100%;
-            height: 100%;
-            z-index: 2; /* #cameraFeed (z-index: 1) より手前に表示 */
-            display: flex; /* 文字を真ん中に配置するための設定 */
-            justify-content: center; /* 横方向の真ん中 */
-            align-items: center; /* 縦方向の真ん中 */
-            pointer-events: none; /* オーバーレイの下にある要素（映像など）をクリックできるようにする */
-            background-color: rgba(0, 0, 0, 0.3); /* 半透明の黒い背景で、文字を見やすくする（調整可能） */
+            max-width: 600px;
+            height: auto;
+            border-radius: 8px;
+            transform: scaleX(-1); /* 鏡写しを解除 */
         }
-        
-        #callText {
-            color: white; /* コール文字の色を白に */
-            font-size: 8vw; /* 文字の大きさを画面の幅に合わせて調整（スマホで大きく表示される） */
-            font-weight: bold; /* 文字を太字に */
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7); /* 文字に影をつけて、背景と区別しやすくする */
-            text-align: center; /* 文字を中央揃えに */
-            padding: 10px; /* 文字の周りに少し余白を作る */
-            display: none; /* **最初は非表示**にしておき、タイミングが来たら表示する */
-        }
-        
-        #startButton {
-            position: absolute; /* ボタンの位置を自由に設定 */
-            top: 20px; /* 画面の上から20pxの位置 */
-            left: 50%; /* 画面の真ん中 */
-            transform: translateX(-50%); /* ボタン自体を半分左にずらして、完全に真ん中に配置 */
-            z-index: 3; /* 一番手前に表示 */
-            padding: 15px 30px; /* ボタンの大きさを調整 */
-            font-size: 1.5em; /* ボタンの文字の大きさ */
-            background-color: #4CAF50; /* ボタンの色（緑色） */
-            color: white; /* ボタンの文字の色 */
-            border: none; /* ボタンの枠線をなくす */
-            border-radius: 8px; /* ボタンの角を丸くする */
-            cursor: pointer; /* マウスカーソルを指の形にする */
+        button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 8px;
+            border: none;
+            background-color: #1e90ff;
+            color: white;
         }
     </style>
 </head>
 <body>
-    <video id="cameraFeed" autoplay playsinline></video>
-    <div id="callOverlay">
-        <div id="callText"></div>
-    </div>
+    
+    <video id="camera" autoplay playsinline></video>
     <button id="startButton">カメラを起動</button>
 
     <script src="script.js"></script>
