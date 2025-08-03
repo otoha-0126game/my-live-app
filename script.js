@@ -5,7 +5,23 @@ const videoElement = document.getElementById('camera');
 const musicPlayer = document.getElementById('musicPlayer');
 const subtitleContainer = document.getElementById('subtitle-container');
 
-// 字幕リスト
+// --- ★顔認識用の設定を追加★ ---
+const canvas = document.getElementById('overlay');
+const displaySize = { width: videoElement.width, height: videoElement.height };
+
+// face-apiのモデルを読み込む
+Promise.all([
+    faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
+    // 必要に応じて他のモデルも読み込む
+    // faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
+    // faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
+    // faceapi.nets.faceExpressionNet.loadFromUri('/models')
+]).then(() => {
+    console.log("顔認識モデルの読み込み完了");
+});
+// --------------------------------
+
+// 字幕リスト (省略...前回と同じ)
 const subtitles = [
     { start: 1.08, end: 1.8, text: "だ〜だ！" },
     { start: 3.5, end: 4.3, text: "だ〜だ！" },
@@ -38,6 +54,7 @@ const subtitles = [
     { start: 79.0, end: 80.0, text: "わお！" }
 ];
 
+
 // 「カメラを起動」ボタンがクリックされたときの処理
 cameraButton.addEventListener('click', async () => {
     try {
@@ -47,11 +64,32 @@ cameraButton.addEventListener('click', async () => {
         
         cameraButton.style.display = 'none';
         liveStartButton.style.display = 'block';
+
     } catch (error) {
         console.error('カメラへのアクセスに失敗しました:', error);
         alert('カメラの起動に失敗しました。');
     }
 });
+
+// --- ★カメラ再生時に顔認識を開始する処理を追加★ ---
+videoElement.addEventListener('play', () => {
+    // canvasのサイズを映像に合わせる
+    faceapi.matchDimensions(canvas, displaySize);
+
+    setInterval(async () => {
+        // 顔を検出する
+        const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions());
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        
+        // canvasをクリアしてから、検出結果を描画
+        canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+        faceapi.draw.drawDetections(canvas, resizedDetections);
+        
+        // ここで検出した顔(detections)に紐づけて文字を表示する処理を後で追加します
+
+    }, 100); // 100ミリ秒ごとに顔を検出
+});
+// ----------------------------------------------------
 
 // 「ライブ開始」ボタンがクリックされたときの処理
 liveStartButton.addEventListener('click', () => {
@@ -59,8 +97,7 @@ liveStartButton.addEventListener('click', () => {
     liveStartButton.style.display = 'none';
 });
 
-// --- ★ここから追加★ ---
-// 字幕のテキストに色を付ける関数
+// 字幕の色付け関数 (省略...前回と同じ)
 function colorizeSubtitle(text) {
     let coloredText = text;
     coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
@@ -69,9 +106,8 @@ function colorizeSubtitle(text) {
     coloredText = coloredText.replace(/りり/g, '<span style="color: red;">りり</span>');
     return coloredText;
 }
-// --- ★ここまで追加★ ---
 
-// 音楽の再生時間に合わせて字幕を更新する
+// 音楽の再生時間に合わせて字幕を更新する (省略...前回と同じ)
 musicPlayer.addEventListener('timeupdate', () => {
     const currentTime = musicPlayer.currentTime;
     let currentSubtitle = "";
@@ -83,7 +119,5 @@ musicPlayer.addEventListener('timeupdate', () => {
         }
     }
     
-    // --- ★ここを修正★ ---
-    // innerTextの代わりにinnerHTMLを使い、色付けしたテキストをセットする
     subtitleContainer.innerHTML = colorizeSubtitle(currentSubtitle);
 });
