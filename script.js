@@ -3,15 +3,25 @@ const cameraButton = document.getElementById('cameraButton');
 const liveStartButton = document.getElementById('liveStartButton');
 const videoElement = document.getElementById('camera');
 const musicPlayer = document.getElementById('musicPlayer');
-const subtitleContainer = document.getElementById('subtitle-container');
+// ★★★ Get both subtitle containers ★★★
+const currentSubtitleContainer = document.getElementById('current-subtitle-container');
+const nextSubtitleContainer = document.getElementById('next-subtitle-container');
+// ★★★★★★★★★★★★★★★★★★★★★★★
 const canvas = document.getElementById('overlay');
 
-// ★★★ 顔とテキストを紐づけるデータを追加 ★★★
 const profileData = {
-    otoha: "おとは 20歳 ズッキーニが大好き🥒",
-    tomoko: "ともこ 54歳 秋田在住"
+    otoha: [
+        "おとは 20歳 ズッキーニが大好き🥒",
+        "TMI: 最近、寝言でズッキーニと言っていたらしい",
+        "特技は3秒でズッキーニの絵を描くこと"
+    ],
+    tomoko: [
+        "ともこ 54歳 秋田在住",
+        "TMI: 家庭菜園で一番うまく育つのはトマト",
+        "実は甘党で、あんこが好き"
+    ]
 };
-// ★★★★★★★★★★★★★★★★★★★★★★★★
+const faceStates = {};
 
 // face-apiのモデルを読み込む
 Promise.all([
@@ -63,6 +73,12 @@ async function loadLabeledImages() {
     const labels = ['otoha', 'tomoko']; 
     return Promise.all(
         labels.map(async label => {
+            faceStates[label] = {
+                lastSeen: 0,
+                firstSeen: 0,
+                isCounting: false,
+                triviaIndex: 0
+            };
             const descriptions = [];
             try {
                 const img = await faceapi.fetchImage(`images/${label}/1.jpg`);
@@ -84,7 +100,6 @@ cameraButton.addEventListener('click', async () => {
         const constraints = { video: { facingMode: 'environment' }, audio: false };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         videoElement.srcObject = stream;
-        
         cameraButton.style.display = 'none';
         liveStartButton.style.display = 'block';
     } catch (error) {
@@ -97,49 +112,59 @@ videoElement.addEventListener('play', async () => {
     try {
         const labeledFaceDescriptors = await loadLabeledImages();
         const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
-
         const displaySize = { width: videoElement.clientWidth, height: videoElement.clientHeight };
         faceapi.matchDimensions(canvas, displaySize);
-
         const ctx = canvas.getContext('2d');
 
         setInterval(async () => {
             const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
-            
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+            const facesSeenThisFrame = new Set();
             resizedDetections.forEach(detection => {
                 const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
-                const box = detection.detection.box;
-
-                // ★★★ ここから描画処理を変更 ★★★
-                // 枠だけを描画
-                new faceapi.draw.DrawBox(box, { boxColor: '#ff4500' }).draw(canvas);
-
                 const label = bestMatch.label;
-                
-                // 'unknown'でなければ、プロフィールデータを取得して描画
+                facesSeenThisFrame.add(label);
                 if (label !== 'unknown') {
-                    const text = profileData[label];
-                    if (text) {
-                        const x = box.bottomLeft.x;
-                        const y = box.bottomLeft.y + 25; // 顔の下に表示するためのY座標
-
-                        // テキストのスタイル設定
-                        ctx.font = '24px sans-serif';
-                        ctx.fillStyle = 'white';
-                        ctx.strokeStyle = 'black';
-                        ctx.lineWidth = 4;
-                        ctx.lineJoin = 'round'; // 文字の角を丸くする
-
-                        // 縁取り文字を描画
-                        ctx.strokeText(text, x, y);
-                        // 本体文字を描画
-                        ctx.fillText(text, x, y);
+                    const state = faceStates[label];
+                    const box = detection.detection.box;
+                    new faceapi.draw.DrawBox(box, { boxColor: '#ff4500' }).draw(canvas);
+                    if (!state.isCounting) {
+                        state.isCounting = true;
+                        state.firstSeen = Date.now();
+                    }
+                    state.lastSeen = Date.now();
+                    const duration = (Date.now() - state.firstSeen) / 1000;
+                    let textToDraw = "";
+                    if (duration < 1) {
+                        textToDraw = "3";
+                    } else if (duration < 2) {
+                        textToDraw = "2";
+                    } else if (duration < 3) {
+                        textToDraw = "1";
+                    } else {
+                        const trivia = profileData[label];
+                        textToDraw = trivia[state.triviaIndex];
+                    }
+                    const x = box.bottomLeft.x;
+                    const y = box.bottomLeft.y + 30;
+                    ctx.font = 'bold 30px sans-serif';
+                    ctx.fillStyle = 'white';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 5;
+                    ctx.strokeText(textToDraw, x, y);
+                    ctx.fillText(textToDraw, x, y);
+                }
+            });
+            Object.keys(faceStates).forEach(label => {
+                if (!facesSeenThisFrame.has(label)) {
+                    const state = faceStates[label];
+                    const timeMissing = (Date.now() - state.lastSeen) / 1000;
+                    if (timeMissing > 1 && state.isCounting) {
+                        state.isCounting = false;
+                        state.triviaIndex = (state.triviaIndex + 1) % profileData[label].length;
                     }
                 }
-                // ★★★ ここまで変更 ★★★
             });
         }, 100);
     } catch(e) {
@@ -156,22 +181,58 @@ liveStartButton.addEventListener('click', () => {
 // 字幕の色付け関数
 function colorizeSubtitle(text) {
     let coloredText = text;
-    coloredText = coloredText.replace(/えな/g, '<span style.color: pink;">えな</span>');
-    coloredText = coloredText.replace(/るな/g, '<span style.color: purple;">るな</span>');
-    coloredText = coloredText.replace(/しおり/g, '<span style.color: lightgreen;">しおり</span>');
-    coloredText = coloredText.replace(/りり/g, '<span style.color: red;">りり</span>');
+    coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
+    coloredText = coloredText.replace(/るな/g, '<span style="color: purple;">るな</span>');
+    coloredText = coloredText.replace(/しおり/g, '<span style="color: lightgreen;">しおり</span>');
+    coloredText = coloredText.replace(/りり/g, '<span style="color: red;">りり</span>');
     return coloredText;
 }
 
-// 字幕更新処理
+// ★★★ 字幕更新処理を修正 ★★★
 musicPlayer.addEventListener('timeupdate', () => {
     const currentTime = musicPlayer.currentTime;
-    let currentSubtitle = "";
-    for (const subtitle of subtitles) {
-        if (currentTime >= subtitle.start && currentTime <= subtitle.end) {
-            currentSubtitle = subtitle.text;
+    let currentSubtitleText = "";
+    let nextSubtitleText = "";
+    let currentSubtitleIndex = -1;
+
+    // 現在の字幕を探す
+    for (let i = 0; i < subtitles.length; i++) {
+        if (currentTime >= subtitles[i].start && currentTime <= subtitles[i].end) {
+            currentSubtitleText = subtitles[i].text;
+            currentSubtitleIndex = i;
             break;
         }
     }
-    subtitleContainer.innerHTML = colorizeSubtitle(currentSubtitle);
+
+    // 次の字幕を探す
+    if (currentSubtitleIndex !== -1) {
+        // 現在の字幕が表示時間外になったら、次の字幕を探し始める
+        let nextIndex = -1;
+        for (let i = 0; i < subtitles.length; i++) {
+            if (subtitles[i].start > currentTime) {
+                nextIndex = i;
+                break;
+            }
+        }
+        if (nextIndex !== -1) {
+            nextSubtitleText = "NEXT👉 " + subtitles[nextIndex].text;
+        }
+    } else {
+        // 現在表示されるべき字幕がない場合（曲の合間など）
+        let nextIndex = -1;
+        for (let i = 0; i < subtitles.length; i++) {
+            if (subtitles[i].start > currentTime) {
+                nextIndex = i;
+                break;
+            }
+        }
+        if (nextIndex !== -1) {
+            nextSubtitleText = "NEXT👉 " + subtitles[nextIndex].text;
+        }
+    }
+
+    // 表示を更新
+    currentSubtitleContainer.innerHTML = colorizeSubtitle(currentSubtitleText);
+    nextSubtitleContainer.innerHTML = nextSubtitleText;
 });
+// ★★★★★★★★★★★★★★★★★★★★★
