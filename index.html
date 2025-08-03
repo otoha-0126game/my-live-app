@@ -4,11 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>アイドルライブ カメラサイト</title>
-    
     <script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
     <script defer src="script.js"></script>
     <style>
-        /* styleの中身は変更なし */
         body, html {
             margin: 0;
             padding: 0;
@@ -36,9 +34,10 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        #subtitle-container {
+        /* ★★★ CSS for both subtitles ★★★ */
+        #current-subtitle-container {
             position: absolute;
-            bottom: 100px;
+            bottom: 150px; /* Moved up */
             width: 90%;
             left: 50%;
             transform: translateX(-50%);
@@ -50,6 +49,22 @@
             z-index: 20;
             pointer-events: none;
         }
+        #next-subtitle-container { /* New style for the next call */
+            position: absolute;
+            bottom: 110px; /* Positioned below the current call */
+            width: 80%;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            color: #cccccc; /* Slightly dimmer color */
+            font-size: 20px;
+            font-weight: bold;
+            opacity: 0.8;
+            text-shadow: 1px 1px 2px #000000;
+            z-index: 20;
+            pointer-events: none;
+        }
+        /* ★★★★★★★★★★★★★★★★★★★★★★★ */
         .controls {
             position: absolute;
             bottom: 30px;
@@ -81,7 +96,8 @@
         <video id="camera" autoplay playsinline></video>
         <canvas id="overlay"></canvas>
         
-        <div id="subtitle-container"></div>
+        <div id="current-subtitle-container"></div>
+        <div id="next-subtitle-container"></div>
 
         <div class="controls">
             <button id="cameraButton">カメラを起動</button>
@@ -90,6 +106,5 @@
     </div>
 
     <audio id="musicPlayer" src="ilife_song.wav"></audio>
-
-    </body>
+</body>
 </html>
