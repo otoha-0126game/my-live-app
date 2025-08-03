@@ -32,21 +32,20 @@
             left: 50%;
             transform: translate(-50%, -50%);
         }
-        /* --- 字幕のスタイルを追加 --- */
         #subtitle-container {
             position: absolute;
-            bottom: 100px; /* ボタンより少し上に表示 */
+            bottom: 100px;
             width: 90%;
             left: 50%;
             transform: translateX(-50%);
             text-align: center;
             color: white;
-            font-size: 24px;
+            /* フォントサイズを大きくしました */
+            font-size: 36px;
             font-weight: bold;
-            /* 文字を見やすくするための黒い縁取り */
             text-shadow: 2px 2px 4px #000000, -2px -2px 4px #000000, 2px -2px 4px #000000, -2px 2px 4px #000000;
             z-index: 20;
-            pointer-events: none; /* 字幕がクリック操作を妨げないようにする */
+            pointer-events: none;
         }
         .controls {
             position: absolute;
@@ -86,7 +85,7 @@
         </div>
     </div>
 
-    <audio id="musicPlayer" src="ilife_song.wav"></audio>
+    <audio id="musicPlayer" src="your_music.wav"></audio>
 
     <script src="script.js"></script>
 </body>
