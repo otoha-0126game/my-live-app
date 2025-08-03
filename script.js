@@ -6,8 +6,6 @@ const musicPlayer = document.getElementById('musicPlayer');
 const subtitleContainer = document.getElementById('subtitle-container');
 const canvas = document.getElementById('overlay');
 
-console.log("スクリプト開始");
-
 // face-apiのモデルを読み込む
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('models'),
@@ -56,6 +54,7 @@ const subtitles = [
 // お手本画像を読み込んで顔の特徴を学習する関数
 async function loadLabeledImages() {
     console.log("...お手本画像の学習を開始します...");
+    // ↓ ここの名前はご自身のフォルダ名に合わせてください
     const labels = ['otoha', 'tomoko']; 
     return Promise.all(
         labels.map(async label => {
@@ -63,7 +62,10 @@ async function loadLabeledImages() {
             try {
                 const img = await faceapi.fetchImage(`images/${label}/1.jpg`);
                 console.log(`... ${label}の画像読み込み完了`);
-                const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+                
+                // ★★★ここを修正★★★
+                const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
+                
                 if (detections) {
                     descriptions.push(detections.descriptor);
                     console.log(`✅ [成功] ${label}の顔の特徴を学習しました`);
@@ -89,7 +91,6 @@ cameraButton.addEventListener('click', async () => {
         cameraButton.style.display = 'none';
         liveStartButton.style.display = 'block';
         console.log("✅ [成功] カメラの起動");
-
     } catch (error) {
         console.error('❌ [失敗] カメラの起動エラー:', error);
     }
@@ -109,9 +110,6 @@ videoElement.addEventListener('play', async () => {
 
         setInterval(async () => {
             const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
-            if (detections.length > 0) {
-                 // console.log(`${detections.length}個の顔を検出`); // メッセージが多すぎるのでコメントアウト
-            }
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
             
             canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
