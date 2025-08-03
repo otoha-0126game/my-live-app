@@ -5,9 +5,7 @@ const videoElement = document.getElementById('camera');
 const musicPlayer = document.getElementById('musicPlayer');
 const subtitleContainer = document.getElementById('subtitle-container');
 
-// --- 字幕リスト ---
-// いただいたリストをデータとして整理しました。
-// start: 開始時間(秒), end: 終了時間(秒), text: 表示する文字
+// 字幕リスト
 const subtitles = [
     { start: 1.08, end: 1.8, text: "だ〜だ！" },
     { start: 3.5, end: 4.3, text: "だ〜だ！" },
@@ -27,17 +25,17 @@ const subtitles = [
     { start: 54.6, end: 55.3, text: "ふっふ〜！" },
     { start: 55.8, end: 57.0, text: "ふっふ〜！" },
     { start: 58.3, end: 59.7, text: "👏👏ふわふわ！" },
-    { start: 59.8, end: 62.0, text: "はいせーの！はいせーの！" }, // 1分2秒 = 62秒
-    { start: 62.2, end: 63.1, text: "うっおい！うっおい！" },    // 1分2.2秒 = 62.2秒
+    { start: 59.8, end: 62.0, text: "はいせーの！はいせーの！" },
+    { start: 62.2, end: 63.1, text: "うっおい！うっおい！" },
     { start: 63.3, end: 64.7, text: "おいおいおいおい！" },
     { start: 64.9, end: 66.0, text: "ふー！" },
     { start: 66.1, end: 67.2, text: "ふっふ〜！" },
     { start: 68.6, end: 69.8, text: "👏👏ふわふわ！" },
-    { start: 69.9, end: 72.0, text: "はいせーの！はいせーの！" }, // 1分12秒 = 72秒
-    { start: 72.2, end: 73.5, text: "うっおい！うっおい！" },    // 1分12.2秒 = 72.2秒
+    { start: 69.9, end: 72.0, text: "はいせーの！はいせーの！" },
+    { start: 72.2, end: 73.5, text: "うっおい！うっおい！" },
     { start: 73.7, end: 74.5, text: "おーいぇー！" },
     { start: 74.6, end: 77.0, text: "👏👏👏👏👏👏👏👏" },
-    { start: 79.0, end: 80.0, text: "わお！" } // 1分19秒 = 79秒
+    { start: 79.0, end: 80.0, text: "わお！" }
 ];
 
 // 「カメラを起動」ボタンがクリックされたときの処理
@@ -61,19 +59,31 @@ liveStartButton.addEventListener('click', () => {
     liveStartButton.style.display = 'none';
 });
 
+// --- ★ここから追加★ ---
+// 字幕のテキストに色を付ける関数
+function colorizeSubtitle(text) {
+    let coloredText = text;
+    coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
+    coloredText = coloredText.replace(/るな/g, '<span style="color: purple;">るな</span>');
+    coloredText = coloredText.replace(/しおり/g, '<span style="color: lightgreen;">しおり</span>');
+    coloredText = coloredText.replace(/りり/g, '<span style="color: red;">りり</span>');
+    return coloredText;
+}
+// --- ★ここまで追加★ ---
+
 // 音楽の再生時間に合わせて字幕を更新する
 musicPlayer.addEventListener('timeupdate', () => {
     const currentTime = musicPlayer.currentTime;
     let currentSubtitle = "";
 
-    // 現在の時間に合致する字幕を探す
     for (const subtitle of subtitles) {
         if (currentTime >= subtitle.start && currentTime <= subtitle.end) {
             currentSubtitle = subtitle.text;
-            break; // 一致するものが見つかったらループを抜ける
+            break;
         }
     }
-
-    // 字幕を表示または非表示にする
-    subtitleContainer.innerText = currentSubtitle;
+    
+    // --- ★ここを修正★ ---
+    // innerTextの代わりにinnerHTMLを使い、色付けしたテキストをセットする
+    subtitleContainer.innerHTML = colorizeSubtitle(currentSubtitle);
 });
