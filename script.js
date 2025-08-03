@@ -6,6 +6,13 @@ const musicPlayer = document.getElementById('musicPlayer');
 const subtitleContainer = document.getElementById('subtitle-container');
 const canvas = document.getElementById('overlay');
 
+// ★★★ 顔とテキストを紐づけるデータを追加 ★★★
+const profileData = {
+    otoha: "おとは 20歳 ズッキーニが大好き🥒",
+    tomoko: "ともこ 54歳 秋田在住"
+};
+// ★★★★★★★★★★★★★★★★★★★★★★★★
+
 // face-apiのモデルを読み込む
 Promise.all([
     faceapi.nets.tinyFaceDetector.loadFromUri('models'),
@@ -53,27 +60,18 @@ const subtitles = [
 
 // お手本画像を読み込んで顔の特徴を学習する関数
 async function loadLabeledImages() {
-    console.log("...お手本画像の学習を開始します...");
-    // ↓ ここの名前はご自身のフォルダ名に合わせてください
     const labels = ['otoha', 'tomoko']; 
     return Promise.all(
         labels.map(async label => {
             const descriptions = [];
             try {
                 const img = await faceapi.fetchImage(`images/${label}/1.jpg`);
-                console.log(`... ${label}の画像読み込み完了`);
-                
-                // ★★★ここを修正★★★
                 const detections = await faceapi.detectSingleFace(img, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptor();
-                
                 if (detections) {
                     descriptions.push(detections.descriptor);
-                    console.log(`✅ [成功] ${label}の顔の特徴を学習しました`);
-                } else {
-                    console.error(`❌ [失敗] ${label}のお手本画像から顔を検出できませんでした。画像を確認してください。`);
                 }
             } catch (e) {
-                console.error(`❌ [失敗] ${label}の画像ファイル(images/${label}/1.jpg)の読み込み自体に失敗しました。`, e);
+                console.error(`Error loading image for ${label}`, e);
             }
             return new faceapi.LabeledFaceDescriptors(label, descriptions);
         })
@@ -82,7 +80,6 @@ async function loadLabeledImages() {
 
 // カメラ起動処理
 cameraButton.addEventListener('click', async () => {
-    console.log("...カメラ起動ボタンが押されました");
     try {
         const constraints = { video: { facingMode: 'environment' }, audio: false };
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
@@ -90,39 +87,63 @@ cameraButton.addEventListener('click', async () => {
         
         cameraButton.style.display = 'none';
         liveStartButton.style.display = 'block';
-        console.log("✅ [成功] カメラの起動");
     } catch (error) {
-        console.error('❌ [失敗] カメラの起動エラー:', error);
+        console.error('カメラの起動エラー:', error);
     }
 });
 
 // カメラ再生時に顔認識を開始
 videoElement.addEventListener('play', async () => {
-    console.log("...カメラ映像の再生が開始されました。顔認識の準備を始めます。");
     try {
         const labeledFaceDescriptors = await loadLabeledImages();
-        console.log("✅ [成功] 全てのお手本画像の学習が完了しました。");
         const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
-        console.log("...FaceMatcherを作成。リアルタイム認識を開始します。");
 
         const displaySize = { width: videoElement.clientWidth, height: videoElement.clientHeight };
         faceapi.matchDimensions(canvas, displaySize);
+
+        const ctx = canvas.getContext('2d');
 
         setInterval(async () => {
             const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
             const resizedDetections = faceapi.resizeResults(detections, displaySize);
             
-            canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
 
             resizedDetections.forEach(detection => {
                 const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
                 const box = detection.detection.box;
-                const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
-                drawBox.draw(canvas);
+
+                // ★★★ ここから描画処理を変更 ★★★
+                // 枠だけを描画
+                new faceapi.draw.DrawBox(box, { boxColor: '#ff4500' }).draw(canvas);
+
+                const label = bestMatch.label;
+                
+                // 'unknown'でなければ、プロフィールデータを取得して描画
+                if (label !== 'unknown') {
+                    const text = profileData[label];
+                    if (text) {
+                        const x = box.bottomLeft.x;
+                        const y = box.bottomLeft.y + 25; // 顔の下に表示するためのY座標
+
+                        // テキストのスタイル設定
+                        ctx.font = '24px sans-serif';
+                        ctx.fillStyle = 'white';
+                        ctx.strokeStyle = 'black';
+                        ctx.lineWidth = 4;
+                        ctx.lineJoin = 'round'; // 文字の角を丸くする
+
+                        // 縁取り文字を描画
+                        ctx.strokeText(text, x, y);
+                        // 本体文字を描画
+                        ctx.fillText(text, x, y);
+                    }
+                }
+                // ★★★ ここまで変更 ★★★
             });
         }, 100);
     } catch(e) {
-        console.error("❌ [失敗] 顔認識の準備中にエラーが発生しました:", e);
+        console.error("顔認識の準備中にエラーが発生しました:", e);
     }
 });
 
@@ -135,10 +156,10 @@ liveStartButton.addEventListener('click', () => {
 // 字幕の色付け関数
 function colorizeSubtitle(text) {
     let coloredText = text;
-    coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
-    coloredText = coloredText.replace(/るな/g, '<span style="color: purple;">るな</span>');
-    coloredText = coloredText.replace(/しおり/g, '<span style="color: lightgreen;">しおり</span>');
-    coloredText = coloredText.replace(/りり/g, '<span style="color: red;">りり</span>');
+    coloredText = coloredText.replace(/えな/g, '<span style.color: pink;">えな</span>');
+    coloredText = coloredText.replace(/るな/g, '<span style.color: purple;">るな</span>');
+    coloredText = coloredText.replace(/しおり/g, '<span style.color: lightgreen;">しおり</span>');
+    coloredText = coloredText.replace(/りり/g, '<span style.color: red;">りり</span>');
     return coloredText;
 }
 
