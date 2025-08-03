@@ -4,24 +4,18 @@ const liveStartButton = document.getElementById('liveStartButton');
 const videoElement = document.getElementById('camera');
 const musicPlayer = document.getElementById('musicPlayer');
 const subtitleContainer = document.getElementById('subtitle-container');
-
-// --- ★顔認識用の設定を追加★ ---
 const canvas = document.getElementById('overlay');
-const displaySize = { width: videoElement.width, height: videoElement.height };
 
-// face-apiのモデルを読み込む
+// ★★★パスの先頭のスラッシュ「/」を削除★★★
 Promise.all([
-    faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
-    // 必要に応じて他のモデルも読み込む
-    // faceapi.nets.faceLandmark68Net.loadFromUri('/models'),
-    // faceapi.nets.faceRecognitionNet.loadFromUri('/models'),
-    // faceapi.nets.faceExpressionNet.loadFromUri('/models')
+    faceapi.nets.tinyFaceDetector.loadFromUri('models'),
+    faceapi.nets.faceLandmark68Net.loadFromUri('models'),
+    faceapi.nets.faceRecognitionNet.loadFromUri('models')
 ]).then(() => {
     console.log("顔認識モデルの読み込み完了");
 });
-// --------------------------------
 
-// 字幕リスト (省略...前回と同じ)
+// 字幕リスト (内容は省略)
 const subtitles = [
     { start: 1.08, end: 1.8, text: "だ〜だ！" },
     { start: 3.5, end: 4.3, text: "だ〜だ！" },
@@ -55,7 +49,24 @@ const subtitles = [
 ];
 
 
-// 「カメラを起動」ボタンがクリックされたときの処理
+// お手本画像を読み込んで顔の特徴を学習する関数
+async function loadLabeledImages() {
+    const labels = ['ena', 'runa']; 
+    return Promise.all(
+        labels.map(async label => {
+            const descriptions = [];
+            // ★★★パスの先頭のスラッシュ「/」を削除★★★
+            const img = await faceapi.fetchImage(`images/${label}/1.jpg`);
+            const detections = await faceapi.detectSingleFace(img).withFaceLandmarks().withFaceDescriptor();
+            if (detections) {
+                descriptions.push(detections.descriptor);
+            }
+            return new faceapi.LabeledFaceDescriptors(label, descriptions);
+        })
+    );
+}
+
+// カメラ起動処理
 cameraButton.addEventListener('click', async () => {
     try {
         const constraints = { video: { facingMode: 'environment' }, audio: false };
@@ -71,33 +82,37 @@ cameraButton.addEventListener('click', async () => {
     }
 });
 
-// --- ★カメラ再生時に顔認識を開始する処理を追加★ ---
-videoElement.addEventListener('play', () => {
-    // canvasのサイズを映像に合わせる
+// カメラ再生時に顔認識を開始
+videoElement.addEventListener('play', async () => {
+    const labeledFaceDescriptors = await loadLabeledImages();
+    const faceMatcher = new faceapi.FaceMatcher(labeledFaceDescriptors, 0.6);
+
+    const displaySize = { width: videoElement.clientWidth, height: videoElement.clientHeight };
     faceapi.matchDimensions(canvas, displaySize);
 
     setInterval(async () => {
-        // 顔を検出する
-        const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions());
+        const detections = await faceapi.detectAllFaces(videoElement, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks().withFaceDescriptors();
         const resizedDetections = faceapi.resizeResults(detections, displaySize);
         
-        // canvasをクリアしてから、検出結果を描画
         canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
-        faceapi.draw.drawDetections(canvas, resizedDetections);
-        
-        // ここで検出した顔(detections)に紐づけて文字を表示する処理を後で追加します
 
-    }, 100); // 100ミリ秒ごとに顔を検出
+        resizedDetections.forEach(detection => {
+            const bestMatch = faceMatcher.findBestMatch(detection.descriptor);
+            const box = detection.detection.box;
+            const drawBox = new faceapi.draw.DrawBox(box, { label: bestMatch.toString() });
+            drawBox.draw(canvas);
+        });
+    }, 100);
 });
-// ----------------------------------------------------
 
-// 「ライブ開始」ボタンがクリックされたときの処理
+
+// ライブ開始ボタンの処理 (変更なし)
 liveStartButton.addEventListener('click', () => {
     musicPlayer.play();
     liveStartButton.style.display = 'none';
 });
 
-// 字幕の色付け関数 (省略...前回と同じ)
+// 字幕の色付け関数 (変更なし)
 function colorizeSubtitle(text) {
     let coloredText = text;
     coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
@@ -107,17 +122,15 @@ function colorizeSubtitle(text) {
     return coloredText;
 }
 
-// 音楽の再生時間に合わせて字幕を更新する (省略...前回と同じ)
+// 字幕更新処理 (変更なし)
 musicPlayer.addEventListener('timeupdate', () => {
     const currentTime = musicPlayer.currentTime;
     let currentSubtitle = "";
-
     for (const subtitle of subtitles) {
         if (currentTime >= subtitle.start && currentTime <= subtitle.end) {
             currentSubtitle = subtitle.text;
             break;
         }
     }
-    
     subtitleContainer.innerHTML = colorizeSubtitle(currentSubtitle);
 });
