@@ -2,10 +2,10 @@ const cameraButton = document.getElementById('cameraButton');
 const liveStartButton = document.getElementById('liveStartButton');
 const videoElement = document.getElementById('camera');
 const musicPlayer = document.getElementById('musicPlayer');
-// ★★★ Get both subtitle containers ★★★
+
 const currentSubtitleContainer = document.getElementById('current-subtitle-container');
 const nextSubtitleContainer = document.getElementById('next-subtitle-container');
-// ★★★★★★★★★★★★★★★★★★★★★★★
+
 const canvas = document.getElementById('overlay');
 
 const profileData = {
