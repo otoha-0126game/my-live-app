@@ -1,4 +1,3 @@
-// HTMLの要素を取得
 const cameraButton = document.getElementById('cameraButton');
 const liveStartButton = document.getElementById('liveStartButton');
 const videoElement = document.getElementById('camera');
@@ -12,12 +11,12 @@ const canvas = document.getElementById('overlay');
 const profileData = {
     otoha: [
         "おとは 20歳 ズッキーニが大好き🥒",
-        "TMI: 最近、寝言でズッキーニと言っていたらしい",
+        "最近、寝言でズッキーニと言っていたらしい",
         "特技は3秒でズッキーニの絵を描くこと"
     ],
     tomoko: [
         "ともこ 54歳 秋田在住",
-        "TMI: 家庭菜園で一番うまく育つのはトマト",
+        "家庭菜園で一番うまく育つのはトマト",
         "実は甘党で、あんこが好き"
     ]
 };
@@ -34,7 +33,7 @@ Promise.all([
     console.error("❌ [失敗] 顔認識モデルの読み込みエラー:", err);
 });
 
-// 字幕リスト (内容は省略)
+// 字幕リスト
 const subtitles = [
     { start: 1.08, end: 1.8, text: "だ〜だ！" },
     { start: 3.5, end: 4.3, text: "だ〜だ！" },
@@ -68,7 +67,7 @@ const subtitles = [
 ];
 
 
-// お手本画像を読み込んで顔の特徴を学習する関数
+// 画像を読み込んで顔の特徴を学習
 async function loadLabeledImages() {
     const labels = ['otoha', 'tomoko']; 
     return Promise.all(
@@ -172,13 +171,13 @@ videoElement.addEventListener('play', async () => {
     }
 });
 
-// ライブ開始ボタンの処理
+// ライブ開始ボタン
 liveStartButton.addEventListener('click', () => {
     musicPlayer.play();
     liveStartButton.style.display = 'none';
 });
 
-// 字幕の色付け関数
+// 字幕の色付け
 function colorizeSubtitle(text) {
     let coloredText = text;
     coloredText = coloredText.replace(/えな/g, '<span style="color: pink;">えな</span>');
@@ -188,14 +187,13 @@ function colorizeSubtitle(text) {
     return coloredText;
 }
 
-// ★★★ 字幕更新処理を修正 ★★★
 musicPlayer.addEventListener('timeupdate', () => {
     const currentTime = musicPlayer.currentTime;
     let currentSubtitleText = "";
     let nextSubtitleText = "";
     let currentSubtitleIndex = -1;
 
-    // 現在の字幕を探す
+    // 現在の字幕
     for (let i = 0; i < subtitles.length; i++) {
         if (currentTime >= subtitles[i].start && currentTime <= subtitles[i].end) {
             currentSubtitleText = subtitles[i].text;
@@ -204,9 +202,9 @@ musicPlayer.addEventListener('timeupdate', () => {
         }
     }
 
-    // 次の字幕を探す
+    // 次の字幕
     if (currentSubtitleIndex !== -1) {
-        // 現在の字幕が表示時間外になったら、次の字幕を探し始める
+        // 現在の字幕が表示時間外になったら、次の字幕を探す
         let nextIndex = -1;
         for (let i = 0; i < subtitles.length; i++) {
             if (subtitles[i].start > currentTime) {
@@ -218,7 +216,7 @@ musicPlayer.addEventListener('timeupdate', () => {
             nextSubtitleText = "NEXT👉 " + subtitles[nextIndex].text;
         }
     } else {
-        // 現在表示されるべき字幕がない場合（曲の合間など）
+        // 現在表示されるべき字幕がない場合
         let nextIndex = -1;
         for (let i = 0; i < subtitles.length; i++) {
             if (subtitles[i].start > currentTime) {
